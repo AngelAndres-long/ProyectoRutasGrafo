@@ -16,16 +16,23 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class VentanaPrincipal extends BorderPane {
 
@@ -268,6 +275,14 @@ public class VentanaPrincipal extends BorderPane {
         clip.widthProperty().bind(areaDibujo.widthProperty());
         clip.heightProperty().bind(areaDibujo.heightProperty());
         areaDibujo.setClip(clip);
+        areaDibujo.setOnMouseClicked(e -> abrirVentanaGrafo(null, null));
+
+        areaDibujo.widthProperty().addListener((obs, anterior, nuevo) -> {
+            if (nuevo.doubleValue() > 0) {
+                double escala = Math.min(0.50, nuevo.doubleValue() / 1100.0);
+                dibujarGrafoEn(areaDibujo, escala, null, null);
+            }
+        });
 
         TableColumn<Conexion, String> colOrigen =
                 new TableColumn<>("Origen");
@@ -447,9 +462,10 @@ public class VentanaPrincipal extends BorderPane {
 
             List<Ubicacion> resultado = controlador.recorrerBFS(inicio);
 
-            if (resultado != null)
-                abrirVentanaTexto("BFS","Recorrido BFS desde " + inicio + ":\n\n" + resultado);
-
+            if (resultado != null) {
+                abrirVentanaTexto("BFS", "Recorrido BFS desde " + inicio + ":\n\n" + resultado);
+                abrirVentanaGrafo(resultado, null);
+            }
         });
 
         btnDFS.setOnAction(e -> {
@@ -468,6 +484,7 @@ public class VentanaPrincipal extends BorderPane {
                         "DFS",
                         "Recorrido DFS desde " + inicio + ":\n\n" + resultado
                 );
+                abrirVentanaGrafo(resultado, null);
             }
         });
 
@@ -806,6 +823,9 @@ public class VentanaPrincipal extends BorderPane {
         });
 
 
+
+        btnMostrar.setOnAction(e -> abrirVentanaGrafo(null, null));
+
         actualizar();
 
         this.setTop(barraSuperior);
@@ -860,6 +880,148 @@ public class VentanaPrincipal extends BorderPane {
         tabla.getItems().setAll(
                 grafo.getConexiones()
         );
+
+        double ancho = areaDibujo.getWidth() > 0 ? areaDibujo.getWidth() : 500;
+        double escala = Math.min(0.50, ancho / 1100.0);
+        dibujarGrafoEn(areaDibujo, escala, null, null);
+    }
+
+    private void abrirVentanaGrafo(List<Ubicacion> visitados,
+                                   Map<Ubicacion, Integer> distancias) {
+        Stage stage = new Stage();
+        stage.setTitle(visitados != null ? "Recorrido del grafo" : "Grafo");
+
+        Pane pane = new Pane();
+        pane.setStyle("-fx-background-color:#0d1b2a;");
+        pane.setPrefSize(1800, 2450);
+
+        dibujarGrafoEn(pane, 1.2, visitados, distancias);
+
+        ScrollPane scroll = new ScrollPane(pane);
+        scroll.setPannable(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        stage.setScene(new Scene(scroll, 1100, 750));
+        stage.show();
+    }
+
+    private void dibujarGrafoEn(Pane pane,
+                                double escala,
+                                List<Ubicacion> visitados,
+                                Map<Ubicacion, Integer> distancias) {
+        pane.getChildren().clear();
+
+        try {
+            Image fondo = new Image(
+                    getClass().getResource("/fondo.gif").toExternalForm()
+            );
+            ImageView bg = new ImageView(fondo);
+            bg.fitWidthProperty().bind(pane.widthProperty());
+            bg.fitHeightProperty().bind(pane.heightProperty());
+            bg.setPreserveRatio(false);
+            pane.getChildren().add(bg);
+        } catch (Exception ex) {
+            pane.setStyle("-fx-background-color:#0d1b2a;");
+        }
+
+        Grafo grafo = controlador.getGrafo();
+        List<Ubicacion> lista = new ArrayList<>(grafo.getVertices());
+        int limite = Math.min(lista.size(), 50);
+        int columnas = 5;
+
+        Map<String, double[]> posiciones = new HashMap<>();
+        double espaciadoX = 250 * escala;
+        double espaciadoY = 185 * escala;
+
+        for (int i = 0; i < limite; i++) {
+            Ubicacion u = lista.get(i);
+            int fila = i / columnas;
+            int columna = i % columnas;
+            double x = 160 * escala + columna * espaciadoX;
+            double y = 150 * escala + fila * espaciadoY;
+            posiciones.put(u.getNombre(), new double[]{x, y});
+        }
+
+        for (Conexion cn : grafo.getConexiones()) {
+            double[] origen = posiciones.get(cn.getOrigen().getNombre());
+            double[] destino = posiciones.get(cn.getDestino().getNombre());
+
+            if (origen == null || destino == null) {
+                continue;
+            }
+
+            double ox = origen[0];
+            double oy = origen[1];
+            double dx = destino[0];
+            double dy = destino[1];
+
+            Line linea = new Line(ox, oy, dx, dy);
+            linea.setStroke(Color.web("#cccccc"));
+            linea.setStrokeWidth(Math.max(1, 1.5 * escala));
+            pane.getChildren().add(linea);
+
+            double mx = (ox + dx) / 2;
+            double my = (oy + dy) / 2;
+            double angulo = Math.atan2(dy - oy, dx - ox);
+            double offsetX = Math.sin(angulo) * 18;
+            double offsetY = -Math.cos(angulo) * 18;
+
+            Label peso = new Label(String.valueOf(cn.getPeso()));
+            peso.setLayoutX(mx + offsetX - 12);
+            peso.setLayoutY(my + offsetY - 6);
+            peso.setTextFill(Color.WHITE);
+            peso.setStyle(
+                    "-fx-background-color:#0d1b2a;" +
+                            "-fx-padding:1 4;" +
+                            "-fx-background-radius:3;" +
+                            "-fx-font-size:10;"
+            );
+            pane.getChildren().add(peso);
+        }
+
+        for (int i = 0; i < limite; i++) {
+            Ubicacion u = lista.get(i);
+            double[] posicion = posiciones.get(u.getNombre());
+            double x = posicion[0];
+            double y = posicion[1];
+
+            int orden = -1;
+            if (visitados != null) {
+                for (int j = 0; j < visitados.size(); j++) {
+                    if (visitados.get(j).getNombre().equals(u.getNombre())) {
+                        orden = j + 1;
+                        break;
+                    }
+                }
+            }
+
+            double radio = 28 * escala;
+            StackPane nodo = new StackPane();
+            nodo.setLayoutX(x - radio);
+            nodo.setLayoutY(y - radio);
+
+            Circle circulo = new Circle(radio);
+            circulo.setFill(orden > 0 ? Color.web("#e63946") : Color.web("#457b9d"));
+            circulo.setStroke(Color.WHITE);
+            circulo.setStrokeWidth(2);
+
+            String texto = u.getNombre();
+            if (texto.length() > 8) {
+                texto = texto.substring(0, 6) + "..";
+            }
+            if (orden > 0) {
+                texto = orden + "\n" + texto;
+            }
+
+            Label etiqueta = new Label(texto);
+            etiqueta.setTextFill(Color.WHITE);
+            etiqueta.setFont(Font.font("System", FontWeight.BOLD, Math.max(8, 10 * escala)));
+            etiqueta.setAlignment(Pos.CENTER);
+            etiqueta.setTextAlignment(TextAlignment.CENTER);
+            nodo.getChildren().addAll(circulo, etiqueta);
+            pane.getChildren().add(nodo);
+        }
     }
 
     private void abrirVentanaTexto(String titulo, String contenido) {
