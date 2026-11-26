@@ -16,7 +16,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
+import java.io.File;
 
 public class VentanaPrincipal extends BorderPane {
 
@@ -303,6 +306,54 @@ public class VentanaPrincipal extends BorderPane {
         );
 
         VBox.setVgrow(tabla, Priority.ALWAYS);
+
+        btnCargarCSV.setOnAction(e -> {
+
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Seleccionar CSV");
+
+            fc.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("CSV", "*.csv")
+            );
+
+            File archivo = fc.showOpenDialog(getScene().getWindow());
+
+            if (archivo != null) {
+                controlador.cargarDesdeArchivo(archivo);
+                actualizar();
+            }
+        });
+
+        btnGuardar.setOnAction(e -> {
+
+            controlador.guardarCambios();
+
+            abrirVentanaTexto(
+                    "Guardado",
+                    "Cambios guardados"
+            );
+        });
+
+        btnGuardarComo.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Guardar CSV");
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
+
+            fc.setInitialFileName("conexiones.csv");
+
+            File archivo = fc.showSaveDialog(getScene().getWindow());
+
+            if (archivo != null) {
+                controlador.guardarComo(archivo);
+                abrirVentanaTexto("Guardado","Archivo guardado en:\n" + archivo.getAbsolutePath());
+            }
+        });
+
+        btnNuevo.setOnAction(e -> {
+
+            controlador.nuevoGrafo();
+            actualizar();
+        });
 
         actualizar();
 
