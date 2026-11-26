@@ -20,6 +20,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.util.List;
 
 public class VentanaPrincipal extends BorderPane {
 
@@ -431,6 +432,80 @@ public class VentanaPrincipal extends BorderPane {
                 txtNombreNuevo.clear();
             }
         });
+
+        btnBFS.setOnAction(e -> {
+            String inicio = txtInicio.getText().trim();
+            if (inicio.isEmpty()) {
+                abrirVentanaTexto("BFS", "Ingresa un vértice de origen.");
+                return;
+            }
+
+            List<Ubicacion> resultado = controlador.recorrerBFS(inicio);
+
+            if (resultado != null)
+                abrirVentanaTexto("BFS","Recorrido BFS desde " + inicio + ":\n\n" + resultado);
+
+        });
+
+        btnDFS.setOnAction(e -> {
+
+            String inicio = txtInicio.getText().trim();
+
+            if (inicio.isEmpty()) {
+                abrirVentanaTexto("DFS", "Ingresa un vértice de origen.");
+                return;
+            }
+
+            List<Ubicacion> resultado = controlador.recorrerDFS(inicio);
+
+            if (resultado != null) {
+                abrirVentanaTexto(
+                        "DFS",
+                        "Recorrido DFS desde " + inicio + ":\n\n" + resultado
+                );
+            }
+        });
+
+        btnDijkstra.setOnAction(e -> {
+
+            String origen = txtInicio.getText().trim();
+            String destino = txtDestinoDijkstra.getText().trim();
+
+            if (origen.isEmpty() || destino.isEmpty()) {
+                abrirVentanaTexto(
+                        "Dijkstra",
+                        "Ingresa un vértice de origen y uno de destino."
+                );
+                return;
+            }
+
+            String resultado = controlador.obtenerRutaDijkstra(
+                    origen, destino
+            );
+
+            abrirVentanaTexto("Dijkstra", resultado);
+        });
+
+        btnLista.setOnAction(e -> {
+
+            String resultado = controlador.obtenerListaAdyacenciaTexto();
+
+            abrirVentanaTexto(
+                    "Lista de adyacencia",
+                    resultado
+            );
+        });
+
+        btnMatriz.setOnAction(e -> {
+
+            String resultado = controlador.obtenerMatriz();
+
+            abrirVentanaTexto(
+                    "Matriz de adyacencia",
+                    resultado
+            );
+        });
+
 
         actualizar();
 
