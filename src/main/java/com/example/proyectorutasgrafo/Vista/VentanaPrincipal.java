@@ -3,15 +3,20 @@ package com.example.proyectorutasgrafo.Vista;
 
 import com.example.proyectorutasgrafo.controlador.ControladorGrafo;
 import com.example.proyectorutasgrafo.modelo.Conexion;
+import com.example.proyectorutasgrafo.modelo.Ubicacion;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
 
 public class VentanaPrincipal extends BorderPane {
 
@@ -45,18 +50,15 @@ public class VentanaPrincipal extends BorderPane {
         }
 
         HBox barraSuperior = new HBox();
-
         barraSuperior.setPadding(new Insets(14, 22, 14, 22));
         barraSuperior.setAlignment(Pos.CENTER);
         barraSuperior.setStyle("-fx-background-color:#0d1b2a;");
 
         Label titulo = new Label("Sistema de Rutas");
-
         titulo.setFont(Font.font("System", FontWeight.BOLD, 22));
         titulo.setTextFill(Color.WHITE);
 
         Button btnSilenciar = new Button("🔊");
-
         btnSilenciar.setStyle(
                 "-fx-background-color:#1b263b;" +
                         "-fx-text-fill:white;" +
@@ -66,9 +68,7 @@ public class VentanaPrincipal extends BorderPane {
         );
 
         btnSilenciar.setOnAction(e -> {
-
             if (mediaPlayer != null) {
-
                 if (silenciado) {
                     mediaPlayer.play();
                     btnSilenciar.setText("🔊");
@@ -76,7 +76,6 @@ public class VentanaPrincipal extends BorderPane {
                     mediaPlayer.pause();
                     btnSilenciar.setText("🔇");
                 }
-
                 silenciado = !silenciado;
             }
         });
@@ -92,7 +91,6 @@ public class VentanaPrincipal extends BorderPane {
         );
 
         VBox panelIzquierdo = new VBox(8);
-
         panelIzquierdo.setPadding(new Insets(16));
         panelIzquierdo.setStyle("-fx-background-color:#0d1b2a;");
 
@@ -198,10 +196,8 @@ public class VentanaPrincipal extends BorderPane {
         );
 
         ScrollPane scrollIzquierdo = new ScrollPane(panelIzquierdo);
-
         scrollIzquierdo.setFitToWidth(true);
         scrollIzquierdo.setPrefWidth(250);
-
         scrollIzquierdo.setStyle(
                 "-fx-background:#0d1b2a;" +
                         "-fx-border-color:#415a77;" +
@@ -213,12 +209,107 @@ public class VentanaPrincipal extends BorderPane {
                 ScrollPane.ScrollBarPolicy.AS_NEEDED
         );
 
-        Label mensaje = new Label("Sistema de Rutas");
-        mensaje.setTextFill(Color.WHITE);
+        VBox panelDerecho = new VBox(10);
+        panelDerecho.setPadding(new Insets(16));
+        panelDerecho.setPrefWidth(200);
+        panelDerecho.setStyle(
+                "-fx-background-color:#0d1b2a;" +
+                        "-fx-border-color:#415a77;" +
+                        "-fx-border-width:2;" +
+                        "-fx-border-radius:10;" +
+                        "-fx-background-radius:10;"
+        );
+
+        Label lblInfo = new Label("Información");
+        lblInfo.setTextFill(Color.WHITE);
+        lblInfo.setFont(
+                Font.font("System", FontWeight.BOLD, 14)
+        );
+
+        areaInfo.setEditable(false);
+        areaInfo.setStyle(
+                "-fx-control-inner-background:#0d1b2a;" +
+                        "-fx-text-fill:#e0e0e0;"
+        );
+
+        ScrollPane scrollInfo = new ScrollPane(areaInfo);
+        scrollInfo.setFitToWidth(true);
+        scrollInfo.setPrefHeight(180);
+        scrollInfo.setStyle("-fx-background:#0d1b2a;");
+
+        Label lblExtra = new Label("Representación");
+        lblExtra.setTextFill(Color.WHITE);
+        lblExtra.setFont(
+                Font.font("System", FontWeight.BOLD, 14)
+        );
+
+        Button btnLista = crearBoton("Lista adyacencia");
+        Button btnMatriz = crearBoton("Matriz adyacencia");
+
+        panelDerecho.getChildren().addAll(
+                lblInfo, scrollInfo, lblExtra, btnLista, btnMatriz
+        );
+
+        areaDibujo.setStyle("-fx-background-color:#0d1b2a;");
+        areaDibujo.setPrefHeight(320);
+        areaDibujo.setMinHeight(280);
+        areaDibujo.setMaxHeight(320);
+
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(areaDibujo.widthProperty());
+        clip.heightProperty().bind(areaDibujo.heightProperty());
+        areaDibujo.setClip(clip);
+
+        TableColumn<Conexion, String> colOrigen =
+                new TableColumn<>("Origen");
+
+        colOrigen.setCellValueFactory(c ->
+                new javafx.beans.property.SimpleStringProperty(
+                        c.getValue().getOrigen().getNombre()
+                )
+        );
+
+        TableColumn<Conexion, String> colDestino =
+                new TableColumn<>("Destino");
+
+        colDestino.setCellValueFactory(c ->
+                new javafx.beans.property.SimpleStringProperty(
+                        c.getValue().getDestino().getNombre()
+                )
+        );
+
+        TableColumn<Conexion, Integer> colPeso =
+                new TableColumn<>("Peso");
+
+        colPeso.setCellValueFactory(c ->
+                new javafx.beans.property.SimpleObjectProperty<>(
+                        c.getValue().getPeso()
+                )
+        );
+
+        tabla.getColumns().addAll(
+                colOrigen, colDestino, colPeso
+        );
+
+        tabla.setColumnResizePolicy(
+                TableView.CONSTRAINED_RESIZE_POLICY
+        );
+
+        VBox panelCentral = new VBox(6);
+        panelCentral.setPadding(new Insets(6));
+
+        panelCentral.getChildren().addAll(
+                areaDibujo, tabla
+        );
+
+        VBox.setVgrow(tabla, Priority.ALWAYS);
+
+        actualizar();
 
         this.setTop(barraSuperior);
         this.setLeft(scrollIzquierdo);
-        this.setCenter(mensaje);
+        this.setRight(panelDerecho);
+        this.setCenter(panelCentral);
 
         this.setStyle("-fx-background-color:#0d1b2a;");
     }
@@ -230,7 +321,6 @@ public class VentanaPrincipal extends BorderPane {
     private Button crearBoton(String texto) {
 
         Button btn = new Button(texto);
-
         btn.setMaxWidth(Double.MAX_VALUE);
 
         btn.setStyle(
@@ -241,5 +331,50 @@ public class VentanaPrincipal extends BorderPane {
         );
 
         return btn;
+    }
+
+    private void actualizar() {
+
+        var grafo = controlador.getGrafo();
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Vértices: ")
+                .append(grafo.getNumeroVertices())
+                .append("\n");
+
+        sb.append("Aristas: ")
+                .append(grafo.getNumeroAristas())
+                .append("\n\n");
+
+        for (Ubicacion u : grafo.getVertices()) {
+            sb.append("• ")
+                    .append(u.getNombre())
+                    .append("\n");
+        }
+
+        areaInfo.setText(sb.toString());
+
+        tabla.getItems().setAll(
+                grafo.getConexiones()
+        );
+    }
+
+    private void abrirVentanaTexto(String titulo, String contenido) {
+
+        Stage stage = new Stage();
+        stage.setTitle(titulo);
+
+        TextArea area = new TextArea(contenido);
+        area.setEditable(false);
+
+        area.setStyle(
+                "-fx-control-inner-background:#0d1b2a;" +
+                        "-fx-text-fill:#e0e0e0;" +
+                        "-fx-font-family:monospace;"
+        );
+
+        stage.setScene(new Scene(area, 620, 480));
+        stage.show();
     }
 }
