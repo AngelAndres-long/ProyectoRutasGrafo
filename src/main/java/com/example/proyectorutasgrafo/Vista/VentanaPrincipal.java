@@ -34,7 +34,7 @@ public class VentanaPrincipal extends BorderPane {
 
         try {
             Media media = new Media(
-                    getClass().getResource("/musica/alex.mp3").toExternalForm()
+                    getClass().getResource("src/main/resources/alex.mp3").toExternalForm()
             );
 
             mediaPlayer = new MediaPlayer(media);
