@@ -1,13 +1,19 @@
 
 package com.example.proyectorutasgrafo.Vista;
 
+import com.example.proyectorutasgrafo.algoritmos.MedidorRendimiento;
 import com.example.proyectorutasgrafo.controlador.ControladorGrafo;
 import com.example.proyectorutasgrafo.modelo.Conexion;
+import com.example.proyectorutasgrafo.modelo.ResultadosPrueba;
 import com.example.proyectorutasgrafo.modelo.Ubicacion;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
@@ -20,6 +26,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class VentanaPrincipal extends BorderPane {
@@ -504,6 +511,144 @@ public class VentanaPrincipal extends BorderPane {
                     "Matriz de adyacencia",
                     resultado
             );
+        });
+
+
+        btnQuick.setOnAction(e ->
+                tabla.getItems().setAll(
+                        controlador.ordenarPorPesoQuick()
+                )
+        );
+
+        btnShell.setOnAction(e ->
+                tabla.getItems().setAll(
+                        controlador.ordenarPorPesoShell()
+                )
+        );
+
+        btnNombre.setOnAction(e ->
+                tabla.getItems().setAll(
+                        controlador.ordenarPorNombreQuick()
+                )
+        );
+
+        btnTiempos.setOnAction(e -> {
+
+            if (controlador.getGrafo().getConexiones().isEmpty()) {
+                abrirVentanaTexto(
+                        "Tiempos",
+                        "No hay conexiones para analizar"
+                );
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder(
+                    "Tiempos de ejecución:\n\n"
+            );
+
+            long t1, t2;
+
+            String primerVertice = controlador.getGrafo()
+                    .getVertices()
+                    .iterator()
+                    .next()
+                    .getNombre();
+
+            t1 = System.nanoTime();
+            controlador.recorrerBFS(primerVertice);
+            t2 = System.nanoTime();
+
+            sb.append("BFS: ")
+                    .append(String.format("%.3f", (t2 - t1) / 1_000_000.0))
+                    .append(" ms\n");
+
+            t1 = System.nanoTime();
+            controlador.recorrerDFS(primerVertice);
+            t2 = System.nanoTime();
+
+            sb.append("DFS: ")
+                    .append(String.format("%.3f", (t2 - t1) / 1_000_000.0))
+                    .append(" ms\n");
+
+            t1 = System.nanoTime();
+            controlador.calcularDijkstra(primerVertice);
+            t2 = System.nanoTime();
+
+            sb.append("Dijkstra: ")
+                    .append(String.format("%.3f", (t2 - t1) / 1_000_000.0))
+                    .append(" ms\n\n");
+
+            double tiempoQuick = MedidorRendimiento.medirQuickSort(
+                    controlador.getGrafo().getConexiones()
+            );
+
+            double tiempoShell = MedidorRendimiento.medirShellSort(
+                    controlador.getGrafo().getConexiones()
+            );
+
+            int conexiones = controlador.getGrafo().getNumeroAristas();
+
+            List<ResultadosPrueba> resultados = new ArrayList<>();
+
+            resultados.add(new ResultadosPrueba(
+                    "QuickSort", "Peso", tiempoQuick, conexiones
+            ));
+
+            resultados.add(new ResultadosPrueba(
+                    "Shell Sort", "Peso", tiempoShell, conexiones
+            ));
+
+            CategoryAxis ejeX = new CategoryAxis();
+            NumberAxis ejeY = new NumberAxis();
+
+            ejeX.setLabel("Algoritmo");
+            ejeY.setLabel("Tiempo promedio (ms)");
+
+            BarChart<String, Number> grafica =
+                    new BarChart<>(ejeX, ejeY);
+
+            grafica.setTitle("Comparación de algoritmos de ordenamiento");
+            grafica.setLegendVisible(false);
+            grafica.setAnimated(false);
+
+            XYChart.Series<String, Number> serie = new XYChart.Series<>();
+
+            for (ResultadosPrueba resultado : resultados) {
+
+                serie.getData().add(
+                        new XYChart.Data<>(
+                                resultado.getAlgoritmo(),
+                                resultado.getTiempo()
+                        )
+                );
+
+                sb.append(resultado.getAlgoritmo())
+                        .append(" (promedio): ")
+                        .append(String.format("%.6f", resultado.getTiempo()))
+                        .append(" ms\n");
+            }
+
+            grafica.getData().add(serie);
+
+            sb.append("\nConexiones analizadas: ")
+                    .append(conexiones)
+                    .append("\n");
+
+            sb.append("Mediciones por ordenamiento: 15\n");
+
+            TextArea detalles = new TextArea(sb.toString());
+            detalles.setEditable(false);
+            detalles.setPrefRowCount(8);
+
+            VBox contenido = new VBox(10, grafica, detalles);
+            contenido.setPadding(new Insets(12));
+
+            VBox.setVgrow(grafica, Priority.ALWAYS);
+
+            Stage ventana = new Stage();
+            ventana.setTitle("Análisis empírico de algoritmos");
+            ventana.setScene(new Scene(contenido, 950, 750));
+            ventana.show();
         });
 
 
