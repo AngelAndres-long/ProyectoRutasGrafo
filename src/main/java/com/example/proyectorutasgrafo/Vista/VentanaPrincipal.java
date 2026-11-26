@@ -3,9 +3,7 @@ package com.example.proyectorutasgrafo.Vista;
 
 import com.example.proyectorutasgrafo.algoritmos.MedidorRendimiento;
 import com.example.proyectorutasgrafo.controlador.ControladorGrafo;
-import com.example.proyectorutasgrafo.modelo.Conexion;
-import com.example.proyectorutasgrafo.modelo.ResultadosPrueba;
-import com.example.proyectorutasgrafo.modelo.Ubicacion;
+import com.example.proyectorutasgrafo.modelo.*;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -648,6 +646,162 @@ public class VentanaPrincipal extends BorderPane {
             Stage ventana = new Stage();
             ventana.setTitle("Análisis empírico de algoritmos");
             ventana.setScene(new Scene(contenido, 950, 750));
+            ventana.show();
+        });
+
+
+        btnCompararArchivos.setOnAction(event -> {
+
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Seleccionar archivos CSV para comparar");
+
+            fc.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("Archivos CSV", "*.csv")
+            );
+
+            List<File> archivos = fc.showOpenMultipleDialog(
+                    getScene().getWindow()
+            );
+
+            if (archivos == null || archivos.isEmpty()) {
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("COMPARACIÓN DE ORDENAMIENTOS\n\n");
+            sb.append("15 mediciones por algoritmo (promedio en ms).\n\n");
+
+            List<ResultadosPrueba> resultadosArchivos = new ArrayList<>();
+
+            CategoryAxis ejeX = new CategoryAxis();
+            NumberAxis ejeY = new NumberAxis();
+
+            ejeX.setLabel("Archivos CSV");
+            ejeY.setLabel("Tiempo promedio (ms)");
+
+            BarChart<String, Number> grafica =
+                    new BarChart<>(ejeX, ejeY);
+
+            grafica.setTitle("Comparación de rendimiento entre archivos");
+            grafica.setAnimated(false);
+            grafica.setCategoryGap(20);
+
+            XYChart.Series<String, Number> serieQuick =
+                    new XYChart.Series<>();
+
+            serieQuick.setName("QuickSort");
+
+            XYChart.Series<String, Number> serieShell =
+                    new XYChart.Series<>();
+
+            serieShell.setName("ShellSort");
+
+            int numeroArchivo = 1;
+
+            for (File archivo : archivos) {
+
+                try {
+
+                    Grafo grafoPrueba = LectorCSV.cargarDesdeArchivo(archivo);
+
+                    int vertices = grafoPrueba.getNumeroVertices();
+                    int conexiones = grafoPrueba.getNumeroAristas();
+
+                    sb.append("Archivo: ")
+                            .append(archivo.getName())
+                            .append("\n");
+
+                    sb.append("Vértices: ")
+                            .append(vertices)
+                            .append("\n");
+
+                    sb.append("Conexiones: ")
+                            .append(conexiones)
+                            .append("\n");
+
+                    if (conexiones == 0) {
+                        sb.append("No hay conexiones válidas para analizar.\n\n");
+                        continue;
+                    }
+
+                    double tiempoQuick = MedidorRendimiento.medirQuickSort(
+                            grafoPrueba.getConexiones()
+                    );
+
+                    double tiempoShell = MedidorRendimiento.medirShellSort(
+                            grafoPrueba.getConexiones()
+                    );
+
+                    ResultadosPrueba resultadoQuick = new ResultadosPrueba("QuickSort","Peso",tiempoQuick,conexiones
+                    );
+
+                    ResultadosPrueba resultadoShell = new ResultadosPrueba("ShellSort", "Peso", tiempoShell,conexiones);
+
+                    resultadosArchivos.add(resultadoQuick);
+                    resultadosArchivos.add(resultadoShell);
+
+                    String etiqueta = numeroArchivo + ": " + archivo.getName();
+
+                    serieQuick.getData().add(
+                            new XYChart.Data<>(
+                                    etiqueta,
+                                    resultadoQuick.getTiempo()
+                            )
+                    );
+
+                    serieShell.getData().add(
+                            new XYChart.Data<>(
+                                    etiqueta,
+                                    resultadoShell.getTiempo()
+                            )
+                    );
+
+                    sb.append(String.format(
+                            "QuickSort: %.6f ms\n",
+                            resultadoQuick.getTiempo()
+                    ));
+
+                    sb.append(String.format(
+                            "ShellSort: %.6f ms\n\n",
+                            resultadoShell.getTiempo()
+                    ));
+
+                } catch (Exception ex) {
+
+                    sb.append("Error al analizar ")
+                            .append(archivo.getName())
+                            .append(": ")
+                            .append(ex.getMessage())
+                            .append("\n\n");
+                }
+
+                numeroArchivo++;
+            }
+
+            if (resultadosArchivos.isEmpty()) {
+                abrirVentanaTexto(
+                        "Comparación de archivos CSV",
+                        sb.toString()
+                );
+                return;
+            }
+
+            grafica.getData().addAll(serieQuick, serieShell);
+
+            TextArea detalles = new TextArea(sb.toString());
+            detalles.setEditable(false);
+            detalles.setPrefHeight(200);
+
+            VBox contenido = new VBox(10, grafica, detalles);
+            contenido.setPadding(new Insets(12));
+
+            VBox.setVgrow(grafica, Priority.ALWAYS);
+
+            Stage ventana = new Stage();
+            ventana.setTitle("Comparación de archivos CSV");
+
+            ventana.setScene(new Scene(contenido, 1000, 750));
             ventana.show();
         });
 
