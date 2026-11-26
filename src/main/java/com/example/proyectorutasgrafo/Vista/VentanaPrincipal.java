@@ -355,6 +355,83 @@ public class VentanaPrincipal extends BorderPane {
             actualizar();
         });
 
+        btnAgregar.setOnAction(e -> {
+            try {
+                String o = txtOrigen.getText().trim();
+                String d = txtDestino.getText().trim();
+                int p = Integer.parseInt(txtPeso.getText().trim());
+
+                if (!o.isEmpty() && !d.isEmpty() && !o.equals(d) && p >= 0) {
+
+                    if (chkNoDirigida.isSelected()) {
+                        controlador.agregarConexionNoDirigida(o, d, p);
+                    } else {
+                        controlador.agregarConexion(o, d, p);
+                    }
+
+                    actualizar();
+
+                    txtOrigen.clear();
+                    txtDestino.clear();
+                    txtPeso.clear();
+                }
+
+            } catch (Exception ex) {
+                abrirVentanaTexto("Error", "Verifica los datos de la conexión.");
+            }
+        });
+
+        btnEliminar.setOnAction(e -> {
+
+            String o = txtElimOrigen.getText().trim();
+            String d = txtElimDestino.getText().trim();
+
+            if (!o.isEmpty() && !d.isEmpty()) {
+
+                controlador.eliminarConexion(o, d);
+                actualizar();
+
+                txtElimOrigen.clear();
+                txtElimDestino.clear();
+            }
+        });
+
+        btnModificarPeso.setOnAction(e -> {
+            try {
+                String o = txtModOrigen.getText().trim();
+                String d = txtModDestino.getText().trim();
+                int p = Integer.parseInt(txtModPeso.getText().trim());
+
+                if (!o.isEmpty() && !d.isEmpty() && p >= 0) {
+
+                    controlador.modificarPeso(o, d, p);
+                    actualizar();
+
+                    txtModOrigen.clear();
+                    txtModDestino.clear();
+                    txtModPeso.clear();
+                }
+
+            } catch (Exception ex) {
+                abrirVentanaTexto("Error", "Verifica los datos del peso.");
+            }
+        });
+
+        btnModificarNombre.setOnAction(e -> {
+
+            String actual = txtNombreActual.getText().trim();
+            String nuevo = txtNombreNuevo.getText().trim();
+
+            if (!actual.isEmpty() && !nuevo.isEmpty()) {
+
+                controlador.modificarNombre(actual, nuevo);
+                actualizar();
+
+                txtNombreActual.clear();
+                txtNombreNuevo.clear();
+            }
+        });
+
         actualizar();
 
         this.setTop(barraSuperior);
