@@ -6,7 +6,7 @@ import java.util.*;
 /**
  * Recorrido en anchura (BFS).
  */
-public class BFS {
+public class BFS{
     public static List<Ubicacion> recorrer(Grafo grafo, Ubicacion inicio){
         List<Ubicacion> res=new ArrayList<>();
         Set<Ubicacion> vis=new HashSet<>();
