@@ -1,13 +1,11 @@
+
 package com.example.proyectorutasgrafo.Vista;
 
 import com.example.proyectorutasgrafo.controlador.ControladorGrafo;
 import com.example.proyectorutasgrafo.modelo.Conexion;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -34,7 +32,7 @@ public class VentanaPrincipal extends BorderPane {
 
         try {
             Media media = new Media(
-                    getClass().getResource("src/main/resources/alex.mp3").toExternalForm()
+                    getClass().getResource("/alex.mp3").toExternalForm()
             );
 
             mediaPlayer = new MediaPlayer(media);
@@ -93,9 +91,133 @@ public class VentanaPrincipal extends BorderPane {
                 izq, titulo, der, btnSilenciar
         );
 
+        VBox panelIzquierdo = new VBox(8);
+
+        panelIzquierdo.setPadding(new Insets(16));
+        panelIzquierdo.setStyle("-fx-background-color:#0d1b2a;");
+
+        Label lblControles = new Label("Controles");
+        lblControles.setTextFill(Color.WHITE);
+        lblControles.setFont(
+                Font.font("System", FontWeight.BOLD, 15)
+        );
+
+        Button btnCargarCSV = crearBoton("Importar CSV");
+        Button btnGuardar = crearBoton("Guardar cambios");
+        Button btnGuardarComo = crearBoton("Guardar como");
+        Button btnNuevo = crearBoton("Nuevo grafo");
+
+        TextField txtOrigen = new TextField();
+        txtOrigen.setPromptText("Origen");
+
+        TextField txtDestino = new TextField();
+        txtDestino.setPromptText("Destino");
+
+        TextField txtPeso = new TextField();
+        txtPeso.setPromptText("Peso");
+
+        CheckBox chkNoDirigida = new CheckBox("No dirigida");
+        chkNoDirigida.setTextFill(Color.WHITE);
+
+        Button btnAgregar = crearBoton("Agregar");
+
+        TextField txtElimOrigen = new TextField();
+        txtElimOrigen.setPromptText("Origen");
+
+        TextField txtElimDestino = new TextField();
+        txtElimDestino.setPromptText("Destino");
+
+        Button btnEliminar = crearBoton("Eliminar");
+
+        TextField txtModOrigen = new TextField();
+        txtModOrigen.setPromptText("Origen");
+
+        TextField txtModDestino = new TextField();
+        txtModDestino.setPromptText("Destino");
+
+        TextField txtModPeso = new TextField();
+        txtModPeso.setPromptText("Nuevo peso");
+
+        Button btnModificarPeso = crearBoton("Modificar peso");
+
+        TextField txtNombreActual = new TextField();
+        txtNombreActual.setPromptText("Nombre actual");
+
+        TextField txtNombreNuevo = new TextField();
+        txtNombreNuevo.setPromptText("Nuevo nombre");
+
+        Button btnModificarNombre = crearBoton("Modificar nombre");
+
+        TextField txtInicio = new TextField();
+        txtInicio.setPromptText("Origen");
+
+        TextField txtDestinoDijkstra = new TextField();
+        txtDestinoDijkstra.setPromptText("Destino");
+
+        Button btnBFS = crearBoton("BFS");
+        Button btnDFS = crearBoton("DFS");
+        Button btnDijkstra = crearBoton("Dijkstra");
+
+        Button btnQuick = crearBoton("QuickSort");
+        Button btnShell = crearBoton("ShellSort");
+        Button btnNombre = crearBoton("Ordenar nombre");
+        Button btnTiempos = crearBoton("Medir tiempos");
+        Button btnMostrar = crearBoton("Ver grafo");
+
+        Button btnCompararArchivos =
+                crearBoton("Comparar archivos CSV");
+
+        Label lblAgregar = new Label("Agregar");
+        Label lblEliminar = new Label("Eliminar");
+        Label lblModificarPeso = new Label("Modificar peso");
+        Label lblModificarNombre = new Label("Modificar nombre");
+        Label lblAlgoritmos = new Label("Algoritmos");
+
+        lblAgregar.setTextFill(Color.WHITE);
+        lblEliminar.setTextFill(Color.WHITE);
+        lblModificarPeso.setTextFill(Color.WHITE);
+        lblModificarNombre.setTextFill(Color.WHITE);
+        lblAlgoritmos.setTextFill(Color.WHITE);
+
+        panelIzquierdo.getChildren().addAll(
+                lblControles,
+                btnCompararArchivos,
+                btnCargarCSV, btnGuardar, btnGuardarComo, btnNuevo,
+                lblAgregar, txtOrigen, txtDestino, txtPeso,
+                chkNoDirigida, btnAgregar,
+                lblEliminar, txtElimOrigen, txtElimDestino, btnEliminar,
+                lblModificarPeso, txtModOrigen, txtModDestino,
+                txtModPeso, btnModificarPeso,
+                lblModificarNombre, txtNombreActual,
+                txtNombreNuevo, btnModificarNombre,
+                new Separator(),
+                lblAlgoritmos, txtInicio, txtDestinoDijkstra,
+                btnBFS, btnDFS, btnDijkstra,
+                new Separator(),
+                btnQuick, btnShell, btnNombre, btnTiempos, btnMostrar
+        );
+
+        ScrollPane scrollIzquierdo = new ScrollPane(panelIzquierdo);
+
+        scrollIzquierdo.setFitToWidth(true);
+        scrollIzquierdo.setPrefWidth(250);
+
+        scrollIzquierdo.setStyle(
+                "-fx-background:#0d1b2a;" +
+                        "-fx-border-color:#415a77;" +
+                        "-fx-border-width:2;" +
+                        "-fx-border-radius:10;"
+        );
+
+        scrollIzquierdo.setVbarPolicy(
+                ScrollPane.ScrollBarPolicy.AS_NEEDED
+        );
+
         Label mensaje = new Label("Sistema de Rutas");
+        mensaje.setTextFill(Color.WHITE);
 
         this.setTop(barraSuperior);
+        this.setLeft(scrollIzquierdo);
         this.setCenter(mensaje);
 
         this.setStyle("-fx-background-color:#0d1b2a;");
@@ -121,6 +243,3 @@ public class VentanaPrincipal extends BorderPane {
         return btn;
     }
 }
-
-
-
